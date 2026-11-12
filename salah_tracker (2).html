@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monthly Salah Tracker</title>
+<style>
+  :root{
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface-2: #f0efe9;
+    --border: rgba(0,0,0,0.12);
+    --border-strong: rgba(0,0,0,0.2);
+    --text: #1c1c1a;
+    --text-secondary: #5f5e5a;
+    --text-tertiary: #888780;
+    --accent: #0c447c;
+    --accent-bg: #e6f1fb;
+    --success-bg: #eaf3de;
+    --success-text: #27500a;
+    --danger-bg: #fcebeb;
+    --danger-text: #791f1f;
+    --warning-bg: #faeeda;
+    --warning-text: #633806;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg: #1a1a18;
+      --surface: #242422;
+      --surface-2: #2c2c2a;
+      --border: rgba(255,255,255,0.12);
+      --border-strong: rgba(255,255,255,0.22);
+      --text: #f1efe8;
+      --text-secondary: #b4b2a9;
+      --text-tertiary: #888780;
+      --accent: #85b7eb;
+      --accent-bg: #0c447c;
+      --success-bg: #173404;
+      --success-text: #c0dd97;
+      --danger-bg: #501313;
+      --danger-text: #f7c1c1;
+      --warning-bg: #412402;
+      --warning-text: #fac775;
+    }
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px 16px 80px;
+    line-height: 1.6;
+  }
+  .container{
+    max-width: 920px;
+    margin: 0 auto;
+  }
+  h1{
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .subtitle{
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0 0 24px;
+  }
+  .controls{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  select, button{
+    height: 38px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 0 12px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  select:hover, button:hover{ border-color: var(--border-strong); }
+  button{ display:flex; align-items:center; gap:6px; }
+  button:active{ transform: scale(0.98); }
+  .spacer{ margin-left:auto; display:flex; gap:8px; }
+  .summary-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap:12px;
+    margin-bottom: 24px;
+  }
+  .card{
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    padding: 16px;
+  }
+  .card .label{
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 4px;
+  }
+  .card .value{
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .table-wrap{
+    overflow-x: auto;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+  }
+  table{
+    width:100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: fixed;
+    min-width: 640px;
+  }
+  th{
+    text-align:center;
+    padding: 10px 6px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  th:first-child{ text-align:left; width: 80px; }
+  td{
+    padding: 6px;
+    border-bottom: 1px solid var(--border);
+    text-align:center;
+  }
+  td:first-child{ text-align:left; white-space:nowrap; padding-left: 12px; }
+  .date-num{ font-weight: 500; }
+  .date-num.today{ color: var(--accent); }
+  .date-day{ color: var(--text-tertiary); font-size: 11px; margin-left:4px; }
+  .status-select{
+    width:100%;
+    min-width: 92px;
+    height: 32px;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    cursor:pointer;
+  }
+  .weekly-section{ margin-top: 28px; }
+  .weekly-section p.heading{
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 10px;
+  }
+  .weekly-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap:12px;
+  }
+  .week-card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+  }
+  .week-card .label{ font-size:12px; color:var(--text-secondary); margin:0 0 4px; }
+  .week-card .value{ font-size:18px; font-weight:600; margin:0; }
+  footer{
+    margin-top: 32px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Monthly salah tracker</h1>
+  <p class="subtitle">Track your 5 daily prayers — data is saved automatically in this browser.</p>
+
+  <div class="controls">
+    <select id="monthSel"></select>
+    <select id="yearSel"></select>
+    <div class="spacer">
+      <button id="markAllPerformed" title="Mark all empty as Performed">✓ Fill empty as performed</button>
+      <button id="resetMonth" title="Reset this month">⟲ Reset month</button>
+    </div>
+  </div>
+
+  <div id="summaryGrid" class="summary-grid"></div>
+
+  <div class="table-wrap">
+    <table id="trackerTable">
+      <thead><tr id="headRow"></tr></thead>
+      <tbody id="bodyRows"></tbody>
+    </table>
+  </div>
+
+  <div class="weekly-section">
+    <p class="heading">Weekly breakdown</p>
+    <div id="weeklyGrid" class="weekly-grid"></div>
+  </div>
+
+  <footer>Your data is stored only in this browser (localStorage). It will not sync across devices or browsers, and clearing browser data will erase it.</footer>
+</div>
+
+<script>
+(function(){
+  const PRAYERS = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
+  const STATUSES = ["", "Performed", "Missed", "Qaza"];
+  const STORAGE_PREFIX = "salahTracker:";
+
+  const STATUS_STYLES = {
+    "": { bg: "var(--surface-2)", text: "var(--text-tertiary)" },
+    "Performed": { bg: "var(--success-bg)", text: "var(--success-text)" },
+    "Missed": { bg: "var(--danger-bg)", text: "var(--danger-text)" },
+    "Qaza": { bg: "var(--warning-bg)", text: "var(--warning-text)" }
+  };
+
+  const monthSel = document.getElementById('monthSel');
+  const yearSel = document.getElementById('yearSel');
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  months.forEach((m,i)=>{
+    const o = document.createElement('option');
+    o.value = i; o.textContent = m;
+    monthSel.appendChild(o);
+  });
+
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  for(let y = thisYear - 2; y <= thisYear + 2; y++){
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    yearSel.appendChild(o);
+  }
+  monthSel.value = now.getMonth();
+  yearSel.value = thisYear;
+
+  function keyFor(year, month){
+    return STORAGE_PREFIX + year + "-" + String(month+1).padStart(2,'0');
+  }
+
+  function loadMonth(year, month){
+    const raw = localStorage.getItem(keyFor(year, month));
+    try {
+      return raw ? JSON.parse(raw) : {};
+    } catch(e){
+      return {};
+    }
+  }
+
+  function saveMonth(year, month, monthData){
+    localStorage.setItem(keyFor(year, month), JSON.stringify(monthData));
+  }
+
+  function daysInMonth(year, month){
+    return new Date(year, month+1, 0).getDate();
+  }
+
+  function dayName(year, month, day){
+    return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(year, month, day).getDay()];
+  }
+
+  let currentMonthData = {};
+
+  function getDayData(day){
+    if(!currentMonthData[day]) currentMonthData[day] = {};
+    return currentMonthData[day];
+  }
+
+  function applyStatusStyle(sel, status){
+    const c = STATUS_STYLES[status] || STATUS_STYLES[""];
+    sel.style.background = c.bg;
+    sel.style.color = c.text;
+  }
+
+  function render(){
+    const year = parseInt(yearSel.value);
+    const month = parseInt(monthSel.value);
+    currentMonthData = loadMonth(year, month);
+    const nDays = daysInMonth(year, month);
+
+    const headRow = document.getElementById('headRow');
+    headRow.innerHTML = "";
+    const thDay = document.createElement('th');
+    thDay.textContent = "Date";
+    headRow.appendChild(thDay);
+    PRAYERS.forEach(p=>{
+      const th = document.createElement('th');
+      th.textContent = p;
+      headRow.appendChild(th);
+    });
+
+    const body = document.getElementById('bodyRows');
+    body.innerHTML = "";
+
+    for(let d=1; d<=nDays; d++){
+      const tr = document.createElement('tr');
+      const dayData = getDayData(d);
+
+      const tdDate = document.createElement('td');
+      const isToday = (year===now.getFullYear() && month===now.getMonth() && d===now.getDate());
+      tdDate.innerHTML = '<span class="date-num'+(isToday?' today':'')+'">'+d+'</span><span class="date-day">'+dayName(year,month,d)+'</span>';
+      tr.appendChild(tdDate);
+
+      PRAYERS.forEach(p=>{
+        const td = document.createElement('td');
+        const sel = document.createElement('select');
+        sel.className = "status-select";
+        STATUSES.forEach(s=>{
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = s === "" ? "-" : s;
+          sel.appendChild(opt);
+        });
+        const currentVal = dayData[p] || "";
+        sel.value = currentVal;
+        applyStatusStyle(sel, currentVal);
+
+        sel.addEventListener('change', function(){
+          dayData[p] = this.value;
+          applyStatusStyle(this, this.value);
+          saveMonth(year, month, currentMonthData);
+          renderSummary();
+        });
+
+        td.appendChild(sel);
+        tr.appendChild(td);
+      });
+
+      body.appendChild(tr);
+    }
+
+    renderSummary();
+  }
+
+  function renderSummary(){
+    const year = parseInt(yearSel.value);
+    const month = parseInt(monthSel.value);
+    const nDays = daysInMonth(year, month);
+
+    let totalPerformed = 0, totalMissed = 0, totalQaza = 0;
+    let todayPerformed = 0, todayTotal = 0;
+
+    for(let d=1; d<=nDays; d++){
+      const dd = currentMonthData[d] || {};
+      PRAYERS.forEach(p=>{
+        const v = dd[p] || "";
+        if(v === "Performed") totalPerformed++;
+        if(v === "Missed") totalMissed++;
+        if(v === "Qaza") totalQaza++;
+      });
+      if(year===now.getFullYear() && month===now.getMonth() && d===now.getDate()){
+        PRAYERS.forEach(p=>{
+          todayTotal++;
+          if((dd[p]||"") === "Performed") todayPerformed++;
+        });
+      }
+    }
+
+    const possibleTotal = nDays * PRAYERS.length;
+    const pct = possibleTotal ? Math.round((totalPerformed/possibleTotal)*100) : 0;
+
+    const grid = document.getElementById('summaryGrid');
+    grid.innerHTML = "";
+    const cards = [
+      { label: "Today (performed)", value: todayPerformed + " / " + todayTotal },
+      { label: "Month performed", value: totalPerformed + " / " + possibleTotal },
+      { label: "Month missed", value: totalMissed },
+      { label: "Month qaza", value: totalQaza },
+      { label: "Completion rate", value: pct + "%" }
+    ];
+    cards.forEach(c=>{
+      const div = document.createElement('div');
+      div.className = "card";
+      div.innerHTML = '<p class="label">'+c.label+'</p><p class="value">'+c.value+'</p>';
+      grid.appendChild(div);
+    });
+
+    renderWeekly(year, month, nDays);
+  }
+
+  function renderWeekly(year, month, nDays){
+    const weeklyGrid = document.getElementById('weeklyGrid');
+    weeklyGrid.innerHTML = "";
+
+    let weeks = [];
+    let currentWeek = [];
+    for(let d=1; d<=nDays; d++){
+      currentWeek.push(d);
+      const dow = new Date(year, month, d).getDay();
+      if(dow === 6 || d === nDays){
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
+    }
+
+    weeks.forEach((week, idx)=>{
+      let performed = 0, total = 0;
+      week.forEach(d=>{
+        const dd = currentMonthData[d] || {};
+        PRAYERS.forEach(p=>{
+          total++;
+          if((dd[p]||"") === "Performed") performed++;
+        });
+      });
+      const div = document.createElement('div');
+      div.className = "week-card";
+      const label = "Week " + (idx+1) + " (" + week[0] + "–" + week[week.length-1] + ")";
+      div.innerHTML = '<p class="label">'+label+'</p><p class="value">'+performed+' / '+total+'</p>';
+      weeklyGrid.appendChild(div);
+    });
+  }
+
+  monthSel.addEventListener('change', render);
+  yearSel.addEventListener('change', render);
+
+  document.getElementById('markAllPerformed').addEventListener('click', function(){
+    const year = parseInt(yearSel.value);
+    const month = parseInt(monthSel.value);
+    const nDays = daysInMonth(year, month);
+    for(let d=1; d<=nDays; d++){
+      const dd = getDayData(d);
+      PRAYERS.forEach(p=>{
+        if(!dd[p]) dd[p] = "Performed";
+      });
+    }
+    saveMonth(year, month, currentMonthData);
+    render();
+  });
+
+  document.getElementById('resetMonth').addEventListener('click', function(){
+    const year = parseInt(yearSel.value);
+    const month = parseInt(monthSel.value);
+    if(!confirm("Reset all entries for this month? This cannot be undone.")) return;
+    currentMonthData = {};
+    saveMonth(year, month, currentMonthData);
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
